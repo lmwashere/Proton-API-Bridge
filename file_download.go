@@ -66,7 +66,7 @@ func (reader *FileDownloadReader) populateBufferOnRead() error {
 		if err != nil {
 			return err
 		}
-		defer blockReader.Close()
+		defer func() { _ = blockReader.Close() }()
 
 		signatureVerificationKR, err := reader.protonDrive.getSignatureVerificationKeyring([]string{reader.link.SignatureEmail}, reader.nodeKR)
 		if err != nil {

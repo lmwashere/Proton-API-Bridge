@@ -82,10 +82,7 @@ func NewConfigForIntegrationTests() *Config {
 	twoFA := os.Getenv("PROTON_API_BRIDGE_TEST_TWOFA")
 
 	useReusableLoginStr := os.Getenv("PROTON_API_BRIDGE_TEST_USE_REUSABLE_LOGIN")
-	useReusableLogin := false
-	if useReusableLoginStr == "1" {
-		useReusableLogin = true
-	}
+	useReusableLogin := useReusableLoginStr == "1"
 
 	uid := os.Getenv("PROTON_API_BRIDGE_TEST_UID")
 	accessToken := os.Getenv("PROTON_API_BRIDGE_TEST_ACCESS_TOKEN")

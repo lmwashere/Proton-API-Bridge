@@ -3,9 +3,9 @@ package proton_api_bridge
 import (
 	"context"
 	"encoding/base64"
-	"io/ioutil"
 	"log"
 	"net/mail"
+	"os"
 	"path/filepath"
 
 	"github.com/ProtonMail/gluon/rfc822"
@@ -44,7 +44,7 @@ func (protonDrive *ProtonDrive) SendEmail(ctx context.Context, i int, errChan ch
 }
 
 func (protonDrive *ProtonDrive) getHTMLBody(config *MailSendingParameters) ([]byte, error) {
-	htmlTemplate, err := ioutil.ReadFile(config.TemplateFile)
+	htmlTemplate, err := os.ReadFile(config.TemplateFile)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (protonDrive *ProtonDrive) uploadAttachments(ctx context.Context, createDra
 	attachments := make([]*proton.Attachment, 0)
 	for i := range config.EmailAttachments {
 		// read out attachment file
-		fileByteArray, err := ioutil.ReadFile(config.EmailAttachments[i])
+		fileByteArray, err := os.ReadFile(config.EmailAttachments[i])
 		if err != nil {
 			return nil, err
 		}

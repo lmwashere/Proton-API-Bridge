@@ -484,7 +484,7 @@ func (protonDrive *ProtonDrive) UploadFileByPath(ctx context.Context, parentLink
 	if err != nil {
 		return "", nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	info, err := os.Stat(filePath)
 	if err != nil {
