@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/rclone/Proton-API-Bridge/utility"
 	"github.com/rclone/go-proton-api"
 )
 
@@ -18,25 +19,23 @@ type ProtonDriveCredential struct {
 	SaltedKeyPass string
 }
 
-func cacheCredentialToFile(config *Config) error {
-	if config.CredentialCacheFile != "" {
-		str, err := json.Marshal(config.ReusableCredential)
-		if err != nil {
-			return err
-		}
-
-		file, err := os.Create(config.CredentialCacheFile)
-		if err != nil {
-			return err
-		}
-		defer func() { _ = file.Close() }()
-		_, err = file.WriteString(string(str))
-		if err != nil {
-			return err
-		}
+func cacheCredentialToFile(config *Config) (err error) {
+	if config.CredentialCacheFile == "" {
+		return nil
 	}
 
-	return nil
+	str, err := json.Marshal(config.ReusableCredential)
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(config.CredentialCacheFile)
+	if err != nil {
+		return err
+	}
+	defer utility.CheckClose(file, &err)
+	_, err = file.WriteString(string(str))
+	return err
 }
 
 /*

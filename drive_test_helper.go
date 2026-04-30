@@ -168,7 +168,11 @@ func uploadFileByFilepathWithError(t *testing.T, ctx context.Context, protonDriv
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() { _ = f.Close() }()
+	defer func() {
+		if err := f.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 
 	info, err := os.Stat(filepath)
 	if err != nil {

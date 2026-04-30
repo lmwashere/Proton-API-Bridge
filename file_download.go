@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/rclone/Proton-API-Bridge/utility"
 	"github.com/rclone/go-proton-api"
 )
 
@@ -53,7 +54,7 @@ func (r *FileDownloadReader) Close() error {
 	return nil
 }
 
-func (reader *FileDownloadReader) populateBufferOnRead() error {
+func (reader *FileDownloadReader) populateBufferOnRead() (err error) {
 	if len(reader.revision.Blocks) == 0 || len(reader.revision.Blocks) == reader.nextRevision {
 		reader.isEOF = true
 		return nil
@@ -62,13 +63,15 @@ func (reader *FileDownloadReader) populateBufferOnRead() error {
 	offset := reader.nextRevision
 	for i := offset; i-offset < DOWNLOAD_BATCH_BLOCK_SIZE && i < len(reader.revision.Blocks); i++ {
 		// TODO: parallel download
-		blockReader, err := reader.protonDrive.c.GetBlock(reader.ctx, reader.revision.Blocks[i].BareURL, reader.revision.Blocks[i].Token)
+		var blockReader io.ReadCloser
+		blockReader, err = reader.protonDrive.c.GetBlock(reader.ctx, reader.revision.Blocks[i].BareURL, reader.revision.Blocks[i].Token)
 		if err != nil {
 			return err
 		}
-		defer func() { _ = blockReader.Close() }()
+		defer utility.CheckClose(blockReader, &err)
 
-		signatureVerificationKR, err := reader.protonDrive.getSignatureVerificationKeyring([]string{reader.link.SignatureEmail}, reader.nodeKR)
+		var signatureVerificationKR *crypto.KeyRing
+		signatureVerificationKR, err = reader.protonDrive.getSignatureVerificationKeyring([]string{reader.link.SignatureEmail}, reader.nodeKR)
 		if err != nil {
 			return err
 		}
