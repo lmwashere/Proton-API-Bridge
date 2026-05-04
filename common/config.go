@@ -1,6 +1,7 @@
 package common
 
 import (
+	"net/http"
 	"os"
 	"runtime"
 )
@@ -9,6 +10,12 @@ type Config struct {
 	/* Constants */
 	AppVersion string
 	UserAgent  string
+
+	/* HTTP */
+	// Transport, if non-nil, is used as the HTTP RoundTripper for
+	// all API requests. This lets callers inject their own
+	// transport.
+	Transport http.RoundTripper
 
 	/* Login */
 	FirstLoginCredential *FirstLoginCredentialData
