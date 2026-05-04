@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"log"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/rclone/Proton-API-Bridge/utility"
@@ -171,7 +170,7 @@ func (protonDrive *ProtonDrive) DownloadFile(ctx context.Context, link *proton.L
 	}
 
 	if useFallbackDownload {
-		log.Println("Performing inefficient seek as metadata of encrypted file is missing")
+		protonDrive.Config.GetLogger().Warnf("Performing inefficient seek as metadata of encrypted file is missing")
 		n, err := io.CopyN(io.Discard, reader, offset)
 		if err != nil {
 			return nil, 0, nil, err

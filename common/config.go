@@ -1,10 +1,29 @@
 package common
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"runtime"
 )
+
+// Logger is the minimum interface the bridge needs to emit log lines.
+// Its method set matches resty.Logger and go-proton-api's WithLogger
+// option, so a single value can be forwarded straight through to the
+// underlying API client without conversion.
+type Logger interface {
+	Errorf(format string, v ...interface{})
+	Warnf(format string, v ...interface{})
+	Debugf(format string, v ...interface{})
+}
+
+// stdlibLogger preserves the bridge's historical "print to stdlib log"
+// behaviour for callers that don't supply a Logger via Config.
+type stdlibLogger struct{}
+
+func (stdlibLogger) Errorf(format string, v ...interface{}) { log.Printf("ERROR: "+format, v...) }
+func (stdlibLogger) Warnf(format string, v ...interface{})  { log.Printf("WARN: "+format, v...) }
+func (stdlibLogger) Debugf(format string, v ...interface{}) { log.Printf("DEBUG: "+format, v...) }
 
 type Config struct {
 	/* Constants */
@@ -16,6 +35,14 @@ type Config struct {
 	// all API requests. This lets callers inject their own
 	// transport.
 	Transport http.RoundTripper
+
+	/* Logging */
+	// Logger, if non-nil, receives all log output produced by the bridge
+	// and is also forwarded to go-proton-api via proton.WithLogger so
+	// that HTTP-layer warnings/errors emitted by resty go through the
+	// same sink. When nil, the bridge falls back to printing through the
+	// stdlib log package.
+	Logger Logger
 
 	/* Login */
 	FirstLoginCredential *FirstLoginCredentialData
@@ -33,6 +60,16 @@ type Config struct {
 
 	/* Drive */
 	DataFolderName string
+}
+
+// GetLogger returns the configured Logger or a stdlib-backed default
+// when Config.Logger is nil. Callers should use this rather than reading
+// Config.Logger directly so they never need to nil-check.
+func (c *Config) GetLogger() Logger {
+	if c.Logger != nil {
+		return c.Logger
+	}
+	return stdlibLogger{}
 }
 
 type FirstLoginCredentialData struct {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"log"
 	"os"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -148,7 +147,7 @@ func Logout(ctx context.Context, config *Config, m *proton.Manager, c *proton.Cl
 	defer c.Close()
 
 	if config.CredentialCacheFile == "" {
-		log.Println("Logging out user")
+		config.GetLogger().Debugf("Logging out user")
 
 		// log out
 		err := c.AuthDelete(ctx)

@@ -3,7 +3,7 @@ package proton_api_bridge
 import (
 	"context"
 	"encoding/base64"
-	"log"
+	"errors"
 	"net/mail"
 	"os"
 	"path/filepath"
@@ -12,6 +12,11 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/rclone/go-proton-api"
 )
+
+// ErrUnsupportedRecipientType is returned when the bridge is asked to
+// send mail to a recipient type it does not yet handle (currently
+// anything other than internal Proton accounts).
+var ErrUnsupportedRecipientType = errors.New("currently only support internal email sending")
 
 type MailSendingParameters struct {
 	TemplateFile          string
@@ -22,8 +27,9 @@ type MailSendingParameters struct {
 }
 
 func (protonDrive *ProtonDrive) SendEmail(ctx context.Context, i int, errChan chan error, config *MailSendingParameters) {
-	log.Println("SendEmail in", i)
-	defer log.Println("SendEmail out", i)
+	logger := protonDrive.Config.GetLogger()
+	logger.Debugf("SendEmail in %d", i)
+	defer logger.Debugf("SendEmail out %d", i)
 
 	createDraftResp, err := protonDrive.createDraft(ctx, config)
 	if err != nil {
@@ -149,7 +155,7 @@ func (protonDrive *ProtonDrive) sendDraft(ctx context.Context, messageID string,
 		return err
 	}
 	if recipientType != proton.RecipientTypeInternal {
-		log.Fatalln("Currently only support internal email sending")
+		return ErrUnsupportedRecipientType
 	}
 	recipientKR, err := recipientPublicKeys.GetKeyRing()
 	if err != nil {

@@ -13,6 +13,9 @@ func getProtonManager(config *Config) *proton.Manager {
 	if config.Transport != nil {
 		options = append(options, proton.WithTransport(config.Transport))
 	}
+	if config.Logger != nil {
+		options = append(options, proton.WithLogger(config.Logger))
+	}
 	m := proton.New(options...)
 
 	return m
