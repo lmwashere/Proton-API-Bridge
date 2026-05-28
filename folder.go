@@ -240,6 +240,11 @@ func (protonDrive *ProtonDrive) moveLink(ctx context.Context, srcLink *proton.Li
 	}
 	req.NodePassphrase = nodePassphrase
 
+	// NodePassphraseSignature/SignatureEmail are only required for
+	// anonymously created nodes (matching the official Proton Drive Windows
+	// client). For regular user-owned nodes they are omitted so the server
+	// preserves the existing signature on the link.
+
 	protonDrive.removeLinkIDFromCache(srcLink.LinkID, false)
 
 	// TODO: disable cache when move is in action?
